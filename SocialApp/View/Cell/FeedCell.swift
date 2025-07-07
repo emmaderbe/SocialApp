@@ -23,28 +23,27 @@ private extension FeedCell {
     func setupCell() {
         contentView.layer.cornerRadius = 16
         contentView.backgroundColor = .white
-        [avatarImageView, titleLabel, bodyLabel, likeButton].forEach { contentView.addSubview($0) }
+        [avatarImageView, titleLabel, bodyLabel, likeButton].forEach { addSubview($0) }
     }
     
     func setupConstraints() {
         NSLayoutConstraint.activate([
-            avatarImageView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
-            avatarImageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12),
+            avatarImageView.topAnchor.constraint(equalTo: topAnchor, constant: 12),
+            avatarImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
             avatarImageView.widthAnchor.constraint(equalToConstant: 40),
             avatarImageView.heightAnchor.constraint(equalTo: avatarImageView.widthAnchor),
             
             titleLabel.topAnchor.constraint(equalTo: avatarImageView.topAnchor),
             titleLabel.leadingAnchor.constraint(equalTo: avatarImageView.trailingAnchor, constant: 12),
-            titleLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12),
+            titleLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
             
             bodyLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 4),
             bodyLabel.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            bodyLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -12),
-            
+            bodyLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
             
             likeButton.topAnchor.constraint(equalTo: bodyLabel.bottomAnchor, constant: 8),
             likeButton.leadingAnchor.constraint(equalTo: avatarImageView.leadingAnchor),
-            likeButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -12)
+            likeButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12)
         ])
     }
 }
