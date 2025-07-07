@@ -7,6 +7,7 @@ final class FeedView: UIView {
         let view = UICollectionView(frame: .zero, collectionViewLayout: layout)
         view.translatesAutoresizingMaskIntoConstraints = false
         view.register(FeedCell.self, forCellWithReuseIdentifier: FeedCell.identifier)
+        view.showsVerticalScrollIndicator = false
         view.backgroundColor = .clear
         return view
     }()

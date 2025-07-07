@@ -1,8 +1,6 @@
-
 import UIKit
 
 class FeedViewController: UIViewController {
-    
     private let feedView = FeedView()
     private let dataSource = FeedCollectionViewDataSource()
     private let delegate = FeedCollectionViewDelegate()
