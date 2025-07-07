@@ -14,7 +14,7 @@
 		C5AEAF222E1BE10B0015CF49 /* Exceptions for "SocialApp" folder in "SocialApp" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Info.plist,
+				Resources/Info.plist,
 			);
 			target = C5AEAF0C2E1BE1070015CF49 /* SocialApp */;
 		};
@@ -147,7 +147,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 45GX59UTNT;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = SocialApp/Info.plist;
+				INFOPLIST_FILE = SocialApp/Resources/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
@@ -179,7 +179,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 45GX59UTNT;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = SocialApp/Info.plist;
+				INFOPLIST_FILE = SocialApp/Resources/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
