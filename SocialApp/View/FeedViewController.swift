@@ -32,16 +32,29 @@ private extension FeedViewController {
     func setupCollection() {
         feedView.setDataSource(dataSource)
         feedView.setDelegate(delegate)
+        setupPullToRefresh()
     }
     
     func bindViewModel() {
         viewModel?.onPostsUpdated = { [weak self] posts in
             self?.dataSource.updatePosts(posts)
             self?.feedView.reloadData()
+            self?.feedView.endRefreshing()
         }
         
         viewModel?.onError = { error in
             print("Ошибка: \(error.localizedDescription)")
+            self.feedView.endRefreshing()
         }
+    }
+}
+
+private extension FeedViewController {
+    func setupPullToRefresh() {
+        feedView.setRefreshTarget(self, action: #selector(refreshPulled))
+    }
+    
+    @objc func refreshPulled() {
+        viewModel?.refreshPosts()
     }
 }

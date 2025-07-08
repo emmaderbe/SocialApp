@@ -1,7 +1,6 @@
 import UIKit
 
 final class FeedCollectionViewDelegate: NSObject, UICollectionViewDelegate {
-    
 }
 
 extension FeedCollectionViewDelegate: UICollectionViewDelegateFlowLayout {
