@@ -42,9 +42,9 @@ private extension FeedViewController {
             self?.feedView.endRefreshing()
         }
         
-        viewModel?.onError = { error in
-            print("Ошибка: \(error.localizedDescription)")
-            self.feedView.endRefreshing()
+        viewModel?.onError = { [weak self] error in
+            self?.showErrorAlert()
+            self?.feedView.endRefreshing()
         }
     }
 }
@@ -57,4 +57,17 @@ private extension FeedViewController {
     @objc func refreshPulled() {
         viewModel?.refreshPosts()
     }
+}
+
+private extension FeedViewController {
+    func showErrorAlert() {
+        let alert = UIAlertController(
+            title: "Упс!",
+            message: "Нет сети. Попробуйте ещё раз.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "Ок", style: .default))
+        present(alert, animated: true)
+    }
+
 }

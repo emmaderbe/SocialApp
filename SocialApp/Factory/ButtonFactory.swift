@@ -31,6 +31,8 @@ private extension LikeButton {
     @objc func tapped() {
         isLiked.toggle()
         updateAppearance()
+        animateTap()
+        vibrate()
         onTap?(isLiked)
     }
     
@@ -40,5 +42,22 @@ private extension LikeButton {
         let image = UIImage(systemName: imageName, withConfiguration: config)
         setImage(image, for: .normal)
         tintColor = isLiked ? .systemRed : .systemGray
+    }
+    
+    func animateTap() {
+        UIView.animate(withDuration: 0.1,
+                       animations: {
+            self.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
+        },
+                       completion: { _ in
+            UIView.animate(withDuration: 0.1) {
+                self.transform = .identity
+            }
+        })
+    }
+    
+    func vibrate() {
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.impactOccurred()
     }
 }
