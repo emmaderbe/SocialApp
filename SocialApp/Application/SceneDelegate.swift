@@ -9,7 +9,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         let window = UIWindow(windowScene: windowScene)
         self.window = window
-        window.rootViewController = FeedViewController()
+        window.rootViewController = FeedViewController(viewModel: FeedViewModel())
         window.makeKeyAndVisible()
     }
 

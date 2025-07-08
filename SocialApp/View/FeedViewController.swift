@@ -4,14 +4,27 @@ class FeedViewController: UIViewController {
     private let feedView = FeedView()
     private let dataSource = FeedCollectionViewDataSource()
     private let delegate = FeedCollectionViewDelegate()
+    private var viewModel: FeedViewModelProtocol?
+    
+    init(viewModel: FeedViewModelProtocol) {
+        super.init(nibName: nil, bundle: nil)
+        self.viewModel = viewModel
+    }
+    
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     override func loadView() {
         view = feedView
     }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        viewModel?.viewDidLoad()
         setupCollection()
-        loadMockData()
+        bindViewModel()
     }
 }
 
@@ -20,20 +33,15 @@ private extension FeedViewController {
         feedView.setDataSource(dataSource)
         feedView.setDelegate(delegate)
     }
-}
-
-extension FeedViewController {
-    private func loadMockData() {
-        let posts: [Post] = (1...10).map { index in
-            Post(
-                id: index,
-                image: UIImage(named: "icon") ?? UIImage(systemName: "person.circle")!,
-                title: "Пост \(index)",
-                body: "Текст поста номер \(index). Здесь может быть длинный текст для проверки.",
-                liked: false
-            )
+    
+    func bindViewModel() {
+        viewModel?.onPostsUpdated = { [weak self] posts in
+            self?.dataSource.updatePosts(posts)
+            self?.feedView.reloadData()
         }
-        dataSource.updatePosts(posts)
-        feedView.reloadData()
+        
+        viewModel?.onError = { error in
+            print("Ошибка: \(error.localizedDescription)")
+        }
     }
 }

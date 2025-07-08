@@ -43,13 +43,15 @@ private extension FeedCell {
             
             likeButton.topAnchor.constraint(equalTo: bodyLabel.bottomAnchor, constant: 8),
             likeButton.leadingAnchor.constraint(equalTo: avatarImageView.leadingAnchor),
-            likeButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12)
+            likeButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12),
+            likeButton.heightAnchor.constraint(equalToConstant: 40),
+            likeButton.widthAnchor.constraint(equalTo: likeButton.heightAnchor),
         ])
     }
 }
 
 extension FeedCell {
-    func configure(with post: Post) {
+    func configure(with post: PostStruct) {
         titleLabel.text = post.title
         bodyLabel.text = post.body
         avatarImageView.image = post.image

@@ -2,9 +2,9 @@ import UIKit
 
 final class FeedCollectionViewDataSource: NSObject, UICollectionViewDataSource {
     
-    private var posts: [Post] = []
+    private var posts: [PostStruct] = []
     
-    func updatePosts(_ posts: [Post]) {
+    func updatePosts(_ posts: [PostStruct]) {
         self.posts = posts
     }
 }
