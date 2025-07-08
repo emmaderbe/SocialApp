@@ -1,7 +1,9 @@
 import UIKit
 
+// MARK: - Properties and init
 final class FeedView: UIView {
     private let refreshControl = UIRefreshControl()
+    
     private let collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
@@ -25,6 +27,7 @@ final class FeedView: UIView {
     }
 }
 
+// MARK: - UI setup
 private extension FeedView {
     func setupView() {
         backgroundColor = .systemGray
@@ -42,6 +45,7 @@ private extension FeedView {
     }
 }
 
+// MARK: - Collection setup
 extension FeedView {
     func setDataSource(_ dataSource: UICollectionViewDataSource) {
         collectionView.dataSource = dataSource
@@ -56,6 +60,7 @@ extension FeedView {
     }
 }
 
+// MARK: - Pull to refresh
 extension FeedView {
     func setRefreshTarget(_ target: Any?, action: Selector) {
         refreshControl.addTarget(target, action: action, for: .valueChanged)

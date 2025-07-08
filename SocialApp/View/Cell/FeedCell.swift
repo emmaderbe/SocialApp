@@ -1,10 +1,13 @@
 import UIKit
 
+// MARK: - Properties and init
 final class FeedCell: UICollectionViewCell {
     private let avatarImageView = ImageFactory.createProfileImage()
     private let titleLabel = LabelFactory.createTitleLabel()
     private let bodyLabel = LabelFactory.createOrdinaryLabel()
     private let likeButton = LikeButton()
+    
+    private var isSkeleton = false
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -18,7 +21,7 @@ final class FeedCell: UICollectionViewCell {
     }
 }
 
-
+// MARK: - UI setup
 private extension FeedCell {
     func setupCell() {
         contentView.layer.cornerRadius = 16
@@ -50,8 +53,42 @@ private extension FeedCell {
     }
 }
 
+// MARK: - Skeleton
+extension FeedCell {
+    func showSkeleton() {
+        isSkeleton = true
+        titleLabel.text = " "
+        bodyLabel.text = " "
+        avatarImageView.image = nil
+        likeButton.isHidden = true
+        
+        [titleLabel, bodyLabel].forEach {
+            $0.backgroundColor = UIColor.systemGray5
+            let animation = CABasicAnimation(keyPath: "opacity")
+            animation.fromValue = 1
+            animation.toValue = 0.5
+            animation.duration = 0.8
+            animation.autoreverses = true
+            animation.repeatCount = .infinity
+            $0.layer.add(animation, forKey: "skeleton")
+        }
+    }
+    
+    func hideSkeleton() {
+        guard isSkeleton else { return }
+        isSkeleton = false
+        [titleLabel, bodyLabel].forEach {
+            $0.layer.removeAllAnimations()
+            $0.backgroundColor = .clear
+        }
+        likeButton.isHidden = false
+    }
+}
+
+// MARK: - UI configure
 extension FeedCell {
     func configure(with post: PostStruct) {
+        hideSkeleton()
         titleLabel.text = post.title
         bodyLabel.text = post.body
         avatarImageView.image = post.image

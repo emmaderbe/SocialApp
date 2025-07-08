@@ -7,14 +7,14 @@ enum APIConstants {
 }
 
 protocol NetworkServiceProtocol {
-    func fetchPosts(completion: @escaping (Result<[FeedResponse], Error>) -> Void)
+    func fetchPosts(start: Int, limit: Int, completion: @escaping (Result<[FeedResponse], Error>) -> Void)
 }
 
 final class NetworkService: NetworkServiceProtocol {
     
-    func fetchPosts(completion: @escaping (Result<[FeedResponse], Error>) -> Void) {
+    func fetchPosts(start: Int, limit: Int, completion: @escaping (Result<[FeedResponse], Error>) -> Void) {
         
-        let url = APIConstants.posts
+        let url = "\(APIConstants.posts)?_start=\(start)&_limit=\(limit)"
         
         AF.request(url).validate().responseDecodable(of: [FeedResponse].self) { response in
             switch response.result {

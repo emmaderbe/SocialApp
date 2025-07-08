@@ -1,52 +1,98 @@
 import Foundation
 
+// MARK: - Loading State
+enum LoadingState {
+    case idle
+    case initial
+    case refreshing
+    case paginating
+}
+
+// MARK: - Protocol
 protocol FeedViewModelProtocol {
     var onPostsUpdated: (([PostStruct]) -> Void)? { get set }
     var onError: ((Error) -> Void)? { get set }
+    var onLoadingStateChanged: ((LoadingState) -> Void)? { get set }
     
     func viewDidLoad()
     func refreshPosts()
+    func loadNextPage()
 }
 
+// MARK: - Properties and init
 final class FeedViewModel: FeedViewModelProtocol {
     private let networkService: NetworkServiceProtocol
     private let mapper: PostMapper
+    private let pagination: PaginationManagerProtocol
     private var posts: [PostStruct] = []
     
+    var onLoadingStateChanged: ((LoadingState) -> Void)?
     var onPostsUpdated: (([PostStruct]) -> Void)?
     var onError: ((Error) -> Void)?
     
-    init(networkService: NetworkServiceProtocol = NetworkService(), mapper: PostMapper = PostMapper()) {
+    init(networkService: NetworkServiceProtocol = NetworkService(),
+         mapper: PostMapper = PostMapper(),
+         pagination: PaginationManagerProtocol = PaginationManager(pageSize: 5)) {
         self.networkService = networkService
         self.mapper = mapper
+        self.pagination = pagination
     }
 }
 
+// MARK: - FeedViewModelProtocol functions
 extension FeedViewModel {
     func viewDidLoad() {
-        fetchPosts()
+        onLoadingStateChanged?(.initial)
+        fetchPosts(reset: true)
     }
     
     func refreshPosts() {
-        fetchPosts()
+        pagination.reset()
+        onLoadingStateChanged?(.refreshing)
+        fetchPosts(reset: true)
+    }
+    
+    func loadNextPage() {
+        guard pagination.canLoadNextPage else { return }
+        onLoadingStateChanged?(.paginating)
+        fetchPosts(reset: false)
     }
 }
 
+// MARK: - Fetch data
 private extension FeedViewModel {
-    func fetchPosts() {
-        networkService.fetchPosts { [weak self] result in
-            switch result {
-            case .success(let feedResponses):
-                let posts = self?.mapper.map(from: feedResponses) ?? []
-                DispatchQueue.main.async {
-                    self?.onPostsUpdated?(posts)
-                }
-                
-            case .failure(let error):
-                DispatchQueue.main.async {
-                    self?.onError?(error)
-                }
+    func fetchPosts(reset: Bool) {
+        pagination.beginLoading()
+        let (start, limit) = pagination.requestParams()
+        
+        networkService.fetchPosts(start: start, limit: limit) { [weak self] result in
+            guard let self = self else { return }
+            self.handleFetchResult(result, reset: reset)
+        }
+    }
+    
+    func handleFetchResult(_ result: Result<[FeedResponse], Error>, reset: Bool) {
+        switch result {
+        case .success(let response):
+            processSuccess(response, reset: reset)
+            
+        case .failure(let error):
+            pagination.reset()
+            DispatchQueue.main.async {
+                self.onError?(error)
+                self.onLoadingStateChanged?(.idle)
             }
+        }
+    }
+
+    func processSuccess(_ response: [FeedResponse], reset: Bool) {
+        let newPosts = mapper.map(from: response)
+        pagination.endLoading(receivedCount: newPosts.count)
+        posts = reset ? newPosts : posts + newPosts
+        
+        DispatchQueue.main.async {
+            self.onPostsUpdated?(self.posts)
+            self.onLoadingStateChanged?(.idle)
         }
     }
 }

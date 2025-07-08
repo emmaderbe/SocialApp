@@ -1,6 +1,7 @@
 import UIKit
 
-class FeedViewController: UIViewController {
+// MARK: - Properties and init
+final class FeedViewController: UIViewController {
     private let feedView = FeedView()
     private let dataSource = FeedCollectionViewDataSource()
     private let delegate = FeedCollectionViewDelegate()
@@ -15,7 +16,8 @@ class FeedViewController: UIViewController {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
+    // MARK: - VC lifecycle 
     override func loadView() {
         view = feedView
     }
@@ -23,19 +25,36 @@ class FeedViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         viewModel?.viewDidLoad()
+        firstLoading()
         setupCollection()
         bindViewModel()
     }
 }
 
+
+// MARK: - UI setup
 private extension FeedViewController {
     func setupCollection() {
         feedView.setDataSource(dataSource)
         feedView.setDelegate(delegate)
+        setupPagination()
         setupPullToRefresh()
     }
-    
+}
+
+// MARK: - Bindings
+private extension FeedViewController {
     func bindViewModel() {
+        viewModel?.onLoadingStateChanged = { [weak self] state in
+            switch state {
+            case .initial, .refreshing, .paginating:
+                self?.dataSource.setSkeletonMode(true)
+            case .idle:
+                self?.dataSource.setSkeletonMode(false)
+            }
+            self?.feedView.reloadData()
+        }
+        
         viewModel?.onPostsUpdated = { [weak self] posts in
             self?.dataSource.updatePosts(posts)
             self?.feedView.reloadData()
@@ -49,6 +68,17 @@ private extension FeedViewController {
     }
 }
 
+
+// MARK: - Pagination
+private extension FeedViewController {
+    func setupPagination() {
+        delegate.onScrolledToBottom = { [weak self] in
+            self?.viewModel?.loadNextPage()
+        }
+    }
+}
+
+// MARK: - Pull to refresh
 private extension FeedViewController {
     func setupPullToRefresh() {
         feedView.setRefreshTarget(self, action: #selector(refreshPulled))
@@ -59,7 +89,13 @@ private extension FeedViewController {
     }
 }
 
+// MARK: - UI helpers
 private extension FeedViewController {
+    func firstLoading() {
+        dataSource.setSkeletonMode(true)
+        feedView.reloadData()
+    }
+    
     func showErrorAlert() {
         let alert = UIAlertController(
             title: "Упс!",
