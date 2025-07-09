@@ -62,7 +62,7 @@ extension FeedCell {
         avatarImageView.image = nil
         likeButton.isHidden = true
         
-        [titleLabel, bodyLabel].forEach {
+        [titleLabel, bodyLabel, avatarImageView].forEach {
             $0.backgroundColor = UIColor.systemGray5
             let animation = CABasicAnimation(keyPath: "opacity")
             animation.fromValue = 1
@@ -77,7 +77,7 @@ extension FeedCell {
     func hideSkeleton() {
         guard isSkeleton else { return }
         isSkeleton = false
-        [titleLabel, bodyLabel].forEach {
+        [titleLabel, bodyLabel, avatarImageView].forEach {
             $0.layer.removeAllAnimations()
             $0.backgroundColor = .clear
         }
@@ -91,8 +91,11 @@ extension FeedCell {
         hideSkeleton()
         titleLabel.text = post.title
         bodyLabel.text = post.body
-        avatarImageView.image = post.image
         likeButton.configure(isLiked: post.liked)
+    }
+    
+    func setImage(_ image: UIImage?) {
+        avatarImageView.image = image
     }
 }
 

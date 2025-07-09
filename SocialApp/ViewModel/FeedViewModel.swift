@@ -12,6 +12,7 @@ enum LoadingState {
 protocol FeedViewModelProtocol {
     var onPostsUpdated: (([PostStruct]) -> Void)? { get set }
     var onError: ((Error) -> Void)? { get set }
+    var onImageLoaded: ((Int, Data) -> Void)? { get set }
     var onLoadingStateChanged: ((LoadingState) -> Void)? { get set }
     
     func viewDidLoad()
@@ -24,18 +25,21 @@ final class FeedViewModel: FeedViewModelProtocol {
     private let networkService: NetworkServiceProtocol
     private let mapper: PostMapper
     private let pagination: PaginationManagerProtocol
+    private let imageLoader: ImageLoaderProtocol
     private var posts: [PostStruct] = []
     
     var onLoadingStateChanged: ((LoadingState) -> Void)?
+    var onImageLoaded: ((Int, Data) -> Void)?
     var onPostsUpdated: (([PostStruct]) -> Void)?
     var onError: ((Error) -> Void)?
     
     init(networkService: NetworkServiceProtocol = NetworkService(),
          mapper: PostMapper = PostMapper(),
-         pagination: PaginationManagerProtocol = PaginationManager(pageSize: 5)) {
+         pagination: PaginationManagerProtocol = PaginationManager(pageSize: 5), imageLoader: ImageLoaderProtocol = ImageLoader()) {
         self.networkService = networkService
         self.mapper = mapper
         self.pagination = pagination
+        self.imageLoader = imageLoader
     }
 }
 
@@ -93,6 +97,19 @@ private extension FeedViewModel {
         DispatchQueue.main.async {
             self.onPostsUpdated?(self.posts)
             self.onLoadingStateChanged?(.idle)
+            
+            newPosts.forEach { self.loadImage(for: $0) }
+        }
+    }
+    
+    func loadImage(for post: PostStruct) {
+        guard let url = URL(string: "https://picsum.photos/seed/\(post.id)/100") else { return }
+
+        imageLoader.loadImage(from: url) { [weak self] data in
+            guard let data = data else { return }
+            DispatchQueue.main.async {
+                self?.onImageLoaded?(post.id, data)
+            }
         }
     }
 }

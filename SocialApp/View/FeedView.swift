@@ -58,6 +58,10 @@ extension FeedView {
     func reloadData() {
         collectionView.reloadData()
     }
+    
+    func reloadItems(at indexPaths: [IndexPath]) {
+        collectionView.reloadItems(at: indexPaths)
+    }
 }
 
 // MARK: - Pull to refresh

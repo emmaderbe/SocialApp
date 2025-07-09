@@ -17,7 +17,7 @@ final class FeedViewController: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
-    // MARK: - VC lifecycle 
+    // MARK: - VC lifecycle
     override func loadView() {
         view = feedView
     }
@@ -64,6 +64,17 @@ private extension FeedViewController {
         viewModel?.onError = { [weak self] error in
             self?.showErrorAlert()
             self?.feedView.endRefreshing()
+        }
+        
+        viewModel?.onImageLoaded = { [weak self] postID, data in
+            guard let self = self,
+                  let image = UIImage(data: data),
+                  let index = self.dataSource.indexOfPost(with: postID)
+            else { return }
+
+            self.dataSource.setImage(image, for: postID)
+            let indexPath = IndexPath(item: index, section: 0)
+            self.feedView.reloadItems(at: [indexPath])
         }
     }
 }

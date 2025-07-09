@@ -4,12 +4,23 @@ import UIKit
 final class FeedCollectionViewDataSource: NSObject, UICollectionViewDataSource {
     private var isSkeletonMode = false
     private var posts: [PostStruct] = []
+    private var imageCache: [Int: UIImage] = [:]
 }
 
 // MARK: - Reload data
 extension FeedCollectionViewDataSource {
     func updatePosts(_ posts: [PostStruct]) {
         self.posts = posts
+    }
+}
+
+extension FeedCollectionViewDataSource {
+    func setImage(_ image: UIImage, for id: Int) {
+        imageCache[id] = image
+    }
+    
+    func indexOfPost(with id: Int) -> Int? {
+        posts.firstIndex(where: { $0.id == id })
     }
 }
 
@@ -32,9 +43,16 @@ extension FeedCollectionViewDataSource {
         { return UICollectionViewCell() }
         if indexPath.item >= posts.count {
             cell.showSkeleton()
+            return cell
+        }
+
+        let post = posts[indexPath.item]
+        cell.configure(with: post)
+
+        if let image = imageCache[post.id] {
+            cell.setImage(image)
         } else {
-            let post = posts[indexPath.item]
-            cell.configure(with: post)
+            cell.setImage(nil)
         }
         return cell
     }
