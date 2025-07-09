@@ -102,6 +102,11 @@ extension FeedCell {
     func setImage(_ image: UIImage?) {
         avatarImageView.image = image
     }
+    
+    func setLikeAction(_ callback: @escaping (Bool) -> Void) {
+        likeButton.onTap = callback
+    }
+
 }
 
 extension FeedCell {

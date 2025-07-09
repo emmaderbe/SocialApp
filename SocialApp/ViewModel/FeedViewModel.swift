@@ -19,6 +19,7 @@ protocol FeedViewModelProtocol {
     func viewDidLoad()
     func refreshPosts()
     func loadNextPage()
+    func updateLike(for id: Int, liked: Bool) 
 }
 
 // MARK: - Properties and init
@@ -70,6 +71,14 @@ extension FeedViewModel {
         onLoadingStateChanged?(.paginating)
         fetchPosts(reset: false)
     }
+    
+    func updateLike(for id: Int, liked: Bool) {
+        if let index = posts.firstIndex(where: { $0.id == id }) {
+            posts[index].liked = liked
+            coreData.updateLike(for: id, liked: liked)
+        }
+    }
+
 }
 
 // MARK: - Fetch data from API
@@ -126,9 +135,9 @@ private extension FeedViewModel {
 
 private extension FeedViewModel {
     func loadCachedPosts() {
-        let dataModels = coreData.fetchPosts()
+        let savedPosts = coreData.fetchPosts()
         
-        let cachedPosts: [PostStruct] = dataModels.map {
+        let cachedPosts = savedPosts.map {
             PostStruct(
                 id: $0.id,
                 image: nil,

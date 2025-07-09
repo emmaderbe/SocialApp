@@ -5,12 +5,17 @@ final class FeedCollectionViewDataSource: NSObject, UICollectionViewDataSource {
     private var isSkeletonMode = false
     private var posts: [PostStruct] = []
     private var imageCache: [Int: UIImage] = [:]
+    private var onLikeTapped: ((Int, Bool) -> Void)?
 }
 
 // MARK: - Reload data
 extension FeedCollectionViewDataSource {
     func updatePosts(_ posts: [PostStruct]) {
         self.posts = posts
+    }
+    
+    func setLikeCallback(_ callback: @escaping (Int, Bool) -> Void) {
+        self.onLikeTapped = callback
     }
 }
 
@@ -55,6 +60,11 @@ extension FeedCollectionViewDataSource {
         } else {
             cell.setImage(nil)
         }
+        
+        cell.setLikeAction { [weak self] isLiked in
+            self?.onLikeTapped?(post.id, isLiked)
+        }
+
         return cell
     }
 }

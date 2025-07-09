@@ -39,6 +39,10 @@ private extension FeedViewController {
         feedView.setDelegate(delegate)
         setupPagination()
         setupPullToRefresh()
+        
+        dataSource.setLikeCallback { [weak self] postId, isLiked in
+            self?.viewModel?.updateLike(for: postId, liked: isLiked)
+        }
     }
 }
 
