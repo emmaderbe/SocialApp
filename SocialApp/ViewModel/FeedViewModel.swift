@@ -1,4 +1,5 @@
 import Foundation
+import CoreData
 
 // MARK: - Loading State
 enum LoadingState {
@@ -27,6 +28,7 @@ final class FeedViewModel: FeedViewModelProtocol {
     private let pagination: PaginationManagerProtocol
     private let imageLoader: ImageLoaderProtocol
     private let imageBuilder: ImageURLProtocol
+    private let coreData: CoreDataManagerProtocol
     private var posts: [PostStruct] = []
     
     var onLoadingStateChanged: ((LoadingState) -> Void)?
@@ -38,12 +40,14 @@ final class FeedViewModel: FeedViewModelProtocol {
          mapper: PostMapper = PostMapper(),
          pagination: PaginationManagerProtocol = PaginationManager(pageSize: 5),
          imageLoader: ImageLoaderProtocol = ImageLoader(),
-         imageBuilder: ImageURLProtocol = ImageURLBuilder()) {
+         imageBuilder: ImageURLProtocol = ImageURLBuilder(),
+         coreData: CoreDataManagerProtocol = CoreDataManager()) {
         self.networkService = networkService
         self.mapper = mapper
         self.pagination = pagination
         self.imageLoader = imageLoader
         self.imageBuilder = imageBuilder
+        self.coreData = coreData
     }
 }
 
@@ -51,6 +55,7 @@ final class FeedViewModel: FeedViewModelProtocol {
 extension FeedViewModel {
     func viewDidLoad() {
         onLoadingStateChanged?(.initial)
+        loadCachedPosts()
         fetchPosts(reset: true)
     }
     
@@ -67,7 +72,7 @@ extension FeedViewModel {
     }
 }
 
-// MARK: - Fetch data
+// MARK: - Fetch data from API
 private extension FeedViewModel {
     func fetchPosts(reset: Bool) {
         pagination.beginLoading()
@@ -99,6 +104,7 @@ private extension FeedViewModel {
         posts = reset ? newPosts : posts + newPosts
         
         DispatchQueue.main.async {
+            self.coreData.savePosts(newPosts)
             self.onPostsUpdated?(self.posts)
             self.onLoadingStateChanged?(.none)
             
@@ -115,5 +121,24 @@ private extension FeedViewModel {
                 self?.onImageLoaded?(post.id, data)
             }
         }
+    }
+}
+
+private extension FeedViewModel {
+    func loadCachedPosts() {
+        let dataModels = coreData.fetchPosts()
+        
+        let cachedPosts: [PostStruct] = dataModels.map {
+            PostStruct(
+                id: $0.id,
+                image: nil,
+                title: $0.title,
+                body: $0.body,
+                liked: $0.liked
+            )
+        }
+        
+        self.posts = cachedPosts
+        self.onPostsUpdated?(cachedPosts)
     }
 }

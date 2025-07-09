@@ -24,10 +24,10 @@ final class FeedViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        bindViewModel()
         viewModel?.viewDidLoad()
         firstLoading()
         setupCollection()
-        bindViewModel()
     }
 }
 
