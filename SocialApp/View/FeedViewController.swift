@@ -49,7 +49,7 @@ private extension FeedViewController {
             switch state {
             case .initial, .refreshing, .paginating:
                 self?.dataSource.setSkeletonMode(true)
-            case .idle:
+            case .none:
                 self?.dataSource.setSkeletonMode(false)
             }
             self?.feedView.reloadData()

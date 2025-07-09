@@ -6,10 +6,12 @@ enum APIConstants {
     static let posts = baseURL + "/posts"
 }
 
+// MARK: - Protocol
 protocol NetworkServiceProtocol {
     func fetchPosts(start: Int, limit: Int, completion: @escaping (Result<[FeedResponse], Error>) -> Void)
 }
 
+// MARK: - Protocol function
 final class NetworkService: NetworkServiceProtocol {
     
     func fetchPosts(start: Int, limit: Int, completion: @escaping (Result<[FeedResponse], Error>) -> Void) {

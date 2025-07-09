@@ -19,6 +19,11 @@ final class FeedCell: UICollectionViewCell {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        avatarImageView.layer.cornerRadius = avatarImageView.frame.width / 2
+    }
 }
 
 // MARK: - UI setup

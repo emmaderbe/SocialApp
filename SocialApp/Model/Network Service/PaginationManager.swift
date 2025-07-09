@@ -26,6 +26,7 @@ final class PaginationManager: PaginationManagerProtocol {
     }
 }
 
+// MARK: - Protocol function
 extension PaginationManager {
     func beginLoading() {
         isLoading = true

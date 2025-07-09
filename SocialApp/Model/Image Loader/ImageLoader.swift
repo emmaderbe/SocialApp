@@ -1,32 +1,35 @@
 import UIKit
 
+// MARK: - Protocol
 protocol ImageLoaderProtocol {
     func loadImage(from url: URL, completion: @escaping (Data?) -> Void)
 }
 
-import UIKit
-
+// MARK: - Properties
 final class ImageLoader: NSObject, ImageLoaderProtocol {
-    private var completions: [URL: (Data?) -> Void] = [:]
     private let cache = NSCache<NSURL, NSData>()
+    private var completions: [URL: (Data?) -> Void] = [:]
 
     private lazy var session: URLSession = {
-        let configuration = URLSessionConfiguration.background(withIdentifier: "homework7")
-        return URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
+        let config = URLSessionConfiguration.background(withIdentifier: "socialApp")
+        return URLSession(configuration: config, delegate: self, delegateQueue: nil)
     }()
+}
 
+// MARK: - Protocol function
+extension ImageLoader {
     func loadImage(from url: URL, completion: @escaping (Data?) -> Void) {
-        if let cachedData = cache.object(forKey: url as NSURL) {
-            completion(cachedData as Data)
+        if let cached = cache.object(forKey: url as NSURL) {
+            completion(cached as Data)
             return
         }
 
         completions[url] = completion
-        let task = session.downloadTask(with: url)
-        task.resume()
+        session.downloadTask(with: url).resume()
     }
 }
 
+// MARK: - URLSessionDownloadDelegate
 extension ImageLoader: URLSessionDownloadDelegate {
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
         guard let url = downloadTask.originalRequest?.url,
@@ -41,12 +44,13 @@ extension ImageLoader: URLSessionDownloadDelegate {
     }
 
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-        if let error = error, let url = task.originalRequest?.url {
-            print("Image load error for URL \(url): \(error.localizedDescription)")
-            DispatchQueue.main.async {
-                self.completions[url]?(nil)
-                self.completions[url] = nil
-            }
+        guard let url = task.originalRequest?.url, let error = error else { return }
+
+        print("Image load failed: \(error.localizedDescription)")
+
+        DispatchQueue.main.async {
+            self.completions[url]?(nil)
+            self.completions[url] = nil
         }
     }
 }

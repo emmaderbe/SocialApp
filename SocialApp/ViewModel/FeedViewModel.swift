@@ -2,7 +2,7 @@ import Foundation
 
 // MARK: - Loading State
 enum LoadingState {
-    case idle
+    case none
     case initial
     case refreshing
     case paginating
@@ -26,6 +26,7 @@ final class FeedViewModel: FeedViewModelProtocol {
     private let mapper: PostMapper
     private let pagination: PaginationManagerProtocol
     private let imageLoader: ImageLoaderProtocol
+    private let imageBuilder: ImageURLProtocol
     private var posts: [PostStruct] = []
     
     var onLoadingStateChanged: ((LoadingState) -> Void)?
@@ -35,11 +36,14 @@ final class FeedViewModel: FeedViewModelProtocol {
     
     init(networkService: NetworkServiceProtocol = NetworkService(),
          mapper: PostMapper = PostMapper(),
-         pagination: PaginationManagerProtocol = PaginationManager(pageSize: 5), imageLoader: ImageLoaderProtocol = ImageLoader()) {
+         pagination: PaginationManagerProtocol = PaginationManager(pageSize: 5),
+         imageLoader: ImageLoaderProtocol = ImageLoader(),
+         imageBuilder: ImageURLProtocol = ImageURLBuilder()) {
         self.networkService = networkService
         self.mapper = mapper
         self.pagination = pagination
         self.imageLoader = imageLoader
+        self.imageBuilder = imageBuilder
     }
 }
 
@@ -84,11 +88,11 @@ private extension FeedViewModel {
             pagination.reset()
             DispatchQueue.main.async {
                 self.onError?(error)
-                self.onLoadingStateChanged?(.idle)
+                self.onLoadingStateChanged?(.none)
             }
         }
     }
-
+    
     func processSuccess(_ response: [FeedResponse], reset: Bool) {
         let newPosts = mapper.map(from: response)
         pagination.endLoading(receivedCount: newPosts.count)
@@ -96,15 +100,15 @@ private extension FeedViewModel {
         
         DispatchQueue.main.async {
             self.onPostsUpdated?(self.posts)
-            self.onLoadingStateChanged?(.idle)
+            self.onLoadingStateChanged?(.none)
             
             newPosts.forEach { self.loadImage(for: $0) }
         }
     }
     
     func loadImage(for post: PostStruct) {
-        guard let url = URL(string: "https://picsum.photos/seed/\(post.id)/100") else { return }
-
+        guard let url = imageBuilder.url(for: post.id) else { return }
+        
         imageLoader.loadImage(from: url) { [weak self] data in
             guard let data = data else { return }
             DispatchQueue.main.async {

@@ -14,6 +14,7 @@ extension FeedCollectionViewDataSource {
     }
 }
 
+// MARK: - Reload image
 extension FeedCollectionViewDataSource {
     func setImage(_ image: UIImage, for id: Int) {
         imageCache[id] = image
