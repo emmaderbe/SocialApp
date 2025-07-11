@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 import CoreData
 
 // MARK: - Loading State
@@ -19,7 +20,7 @@ protocol FeedViewModelProtocol {
     func viewDidLoad()
     func refreshPosts()
     func loadNextPage()
-    func updateLike(for id: Int, liked: Bool) 
+    func updateLike(for id: Int, liked: Bool)
 }
 
 // MARK: - Properties and init
@@ -54,35 +55,42 @@ final class FeedViewModel: FeedViewModelProtocol {
 
 // MARK: - FeedViewModelProtocol functions
 extension FeedViewModel {
+    /// Метод вызывается при первом запуске экрана
+    /// Загружает кэшированные данные из CoreData, затем запрашивает с сервера
     func viewDidLoad() {
         onLoadingStateChanged?(.initial)
         loadCachedPosts()
         fetchPosts(reset: true)
     }
     
+    /// Обновляет данные заново по pull-to-refresh
+    /// Сбрасывает пагинацию и делает повторный API-запрос
     func refreshPosts() {
         pagination.reset()
         onLoadingStateChanged?(.refreshing)
         fetchPosts(reset: true)
     }
     
+    /// Загружает следующую страницу, если это возможно
     func loadNextPage() {
         guard pagination.canLoadNextPage else { return }
         onLoadingStateChanged?(.paginating)
         fetchPosts(reset: false)
     }
     
+    /// Обновляет лайк по ID как в модели на экране, так и в CoreData
     func updateLike(for id: Int, liked: Bool) {
         if let index = posts.firstIndex(where: { $0.id == id }) {
             posts[index].liked = liked
             coreData.updateLike(for: id, liked: liked)
         }
     }
-
 }
 
 // MARK: - Fetch data from API
 private extension FeedViewModel {
+    /// Отправляет запрос на сервер и обрабатывает результат
+    /// Параметр reset отвечает за полную перезагрузку или пагинацию
     func fetchPosts(reset: Bool) {
         pagination.beginLoading()
         let (start, limit) = pagination.requestParams()
@@ -93,6 +101,8 @@ private extension FeedViewModel {
         }
     }
     
+    /// Обрабатывает результат сетевого запроса
+    /// В случае успеха вызывает processSuccess, при ошибке уведомляет UI
     func handleFetchResult(_ result: Result<[FeedResponse], Error>, reset: Bool) {
         switch result {
         case .success(let response):
@@ -107,6 +117,8 @@ private extension FeedViewModel {
         }
     }
     
+    /// Обрабатывает успешный результат запроса
+    /// Сохраняет полученные посты в CoreData, обновляет UI и запускает подгрузку изображений
     func processSuccess(_ response: [FeedResponse], reset: Bool) {
         let newPosts = mapper.map(from: response)
         pagination.endLoading(receivedCount: newPosts.count)
@@ -120,32 +132,33 @@ private extension FeedViewModel {
             newPosts.forEach { self.loadImage(for: $0) }
         }
     }
-    
+}
+
+// MARK: - Fetch image from API
+private extension FeedViewModel {
+    /// Загружает изображение для поста, затем сохраняет его в CoreData
+    /// Также уведомляет View о том, что картинка доступна
     func loadImage(for post: PostStruct) {
         guard let url = imageBuilder.url(for: post.id) else { return }
         
         imageLoader.loadImage(from: url) { [weak self] data in
-            guard let data = data else { return }
+            guard let self, let data = data else { return }
+            
             DispatchQueue.main.async {
-                self?.onImageLoaded?(post.id, data)
+                self.onImageLoaded?(post.id, data)
+                let updatedPost = self.mapper.update(post: post, withImageData: data)
+                self.coreData.savePosts([updatedPost])
             }
         }
     }
 }
 
+// MARK: - Fetch data from Core Data
 private extension FeedViewModel {
+    /// Загружает посты из CoreData и отображает их на экране
     func loadCachedPosts() {
         let savedPosts = coreData.fetchPosts()
-        
-        let cachedPosts = savedPosts.map {
-            PostStruct(
-                id: $0.id,
-                image: nil,
-                title: $0.title,
-                body: $0.body,
-                liked: $0.liked
-            )
-        }
+        let cachedPosts = savedPosts.map { mapper.map(from: $0) }
         
         self.posts = cachedPosts
         self.onPostsUpdated?(cachedPosts)

@@ -1,4 +1,5 @@
 import CoreData
+import UIKit
 
 protocol CoreDataManagerProtocol {
     func savePosts(_ posts: [PostStruct])
@@ -6,11 +7,13 @@ protocol CoreDataManagerProtocol {
     func updateLike(for id: Int, liked: Bool)
 }
 
+// MARK: - Properties and init()
 final class CoreDataManager: CoreDataManagerProtocol {
     private let container: NSPersistentContainer
     private var context: NSManagedObjectContext {
         container.viewContext
     }
+
     init() {
         container = NSPersistentContainer(name: "SocialApp")
         container.loadPersistentStores { _, error in
@@ -21,24 +24,24 @@ final class CoreDataManager: CoreDataManagerProtocol {
     }
 }
 
+// MARK: - CoreDataManagerProtocol functions
 extension CoreDataManager {
+    /// Сохраняет массив постов в Core Data
+    /// Если пост с таким id уже существует, обновляет его поля. Иначе создаёт новый
     func savePosts(_ posts: [PostStruct]) {
         posts.forEach { post in
             let fetchRequest: NSFetchRequest<PostEntity> = PostEntity.fetchRequest()
             fetchRequest.predicate = NSPredicate(format: "id == %d", post.id)
 
-            if let existing = try? context.fetch(fetchRequest).first {
-                existing.title = post.title
-                existing.body = post.body
-                existing.liked = post.liked
-                existing.imageData = post.image?.pngData()
-            } else {
-                let entity = PostEntity(context: context)
-                entity.id = Int32(post.id)
-                entity.title = post.title
-                entity.body = post.body
-                entity.liked = post.liked
-                entity.imageData = post.image?.pngData()
+            let entity = (try? context.fetch(fetchRequest).first) ?? PostEntity(context: context)
+
+            entity.id = Int32(post.id)
+            entity.title = post.title
+            entity.body = post.body
+            entity.liked = post.liked
+
+            if let newImageData = post.image?.pngData() {
+                entity.imageData = newImageData
             }
         }
 
@@ -49,11 +52,12 @@ extension CoreDataManager {
         }
     }
 
-    
+    /// Загружает все сохранённые посты из Core Data
+    /// Возвращает массив PostDataModel для дальнейшего отображения
     func fetchPosts() -> [PostDataModel] {
         let request: NSFetchRequest<PostEntity> = PostEntity.fetchRequest()
         let result = (try? context.fetch(request)) ?? []
-        
+
         return result.map {
             PostDataModel(
                 id: Int($0.id),
@@ -64,10 +68,12 @@ extension CoreDataManager {
             )
         }
     }
-    
+
+    /// Обновляет статус лайка у поста с указанным id
     func updateLike(for id: Int, liked: Bool) {
         let request: NSFetchRequest<PostEntity> = PostEntity.fetchRequest()
         request.predicate = NSPredicate(format: "id == %d", id)
+
         if let entity = try? context.fetch(request).first {
             entity.liked = liked
             try? context.save()

@@ -1,7 +1,7 @@
 import UIKit
 
 // MARK: - Properties
-final class FeedCollectionViewDataSource: NSObject, UICollectionViewDataSource {
+final class FeedTableViewDataSource: NSObject, UITableViewDataSource  {
     private var isSkeletonMode = false
     private var posts: [PostStruct] = []
     private var imageCache: [Int: UIImage] = [:]
@@ -9,7 +9,7 @@ final class FeedCollectionViewDataSource: NSObject, UICollectionViewDataSource {
 }
 
 // MARK: - Reload data
-extension FeedCollectionViewDataSource {
+extension FeedTableViewDataSource {
     func updatePosts(_ posts: [PostStruct]) {
         self.posts = posts
     }
@@ -20,7 +20,7 @@ extension FeedCollectionViewDataSource {
 }
 
 // MARK: - Reload image
-extension FeedCollectionViewDataSource {
+extension FeedTableViewDataSource {
     func setImage(_ image: UIImage, for id: Int) {
         imageCache[id] = image
     }
@@ -31,30 +31,30 @@ extension FeedCollectionViewDataSource {
 }
 
 // MARK: - Skeleton
-extension FeedCollectionViewDataSource {
+extension FeedTableViewDataSource {
     func setSkeletonMode(_ enabled: Bool) {
         isSkeletonMode = enabled
     }
 }
 
 // MARK: - Collection setup
-extension FeedCollectionViewDataSource {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+extension FeedTableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return isSkeletonMode ? posts.count + 5 : posts.count
     }
     
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FeedCell.identifier,
-                                                            for: indexPath) as? FeedCell else
-        { return UICollectionViewCell() }
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: FeedCell.identifier,
+                                                       for: indexPath) as? FeedCell else
+        { return UITableViewCell() }
         if indexPath.item >= posts.count {
             cell.showSkeleton()
             return cell
         }
-
+        
         let post = posts[indexPath.item]
         cell.configure(with: post)
-
+        
         if let image = imageCache[post.id] {
             cell.setImage(image)
         } else {
@@ -64,7 +64,7 @@ extension FeedCollectionViewDataSource {
         cell.setLikeAction { [weak self] isLiked in
             self?.onLikeTapped?(post.id, isLiked)
         }
-
+        
         return cell
     }
 }
