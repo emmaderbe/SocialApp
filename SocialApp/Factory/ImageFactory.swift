@@ -5,6 +5,7 @@ final class ImageFactory {
         let image = UIImageView()
         image.image = UIImage(named: "icon")
         image.layer.masksToBounds = true
+        image.layer.cornerRadius = 20
         image.contentMode = .scaleAspectFit
         image.translatesAutoresizingMaskIntoConstraints = false
         return image
